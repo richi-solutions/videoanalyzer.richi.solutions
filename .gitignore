@@ -1,9 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment
 .env
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
+.env.local
+
+# Claude Code local overrides (not committed)
+.claude/settings.local.json
+.claude/CLAUDE.local.md
 
 # Downloaded video temp files (safety net if cleanup fails)
 *.mp4
