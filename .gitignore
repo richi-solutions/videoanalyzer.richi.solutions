@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Downloaded video temp files (safety net if cleanup fails)
+*.mp4
+*.webm
+*.mkv
+*.mov
