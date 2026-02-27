@@ -4,3 +4,4 @@ yt-dlp>=2024.8.6
 google-genai>=1.0.0
 python-dotenv>=1.0.0
 slowapi>=0.1.9
+google-cloud-firestore>=2.16.0

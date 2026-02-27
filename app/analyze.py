@@ -5,6 +5,8 @@ import tempfile
 from google import genai
 import yt_dlp
 
+from app.jobs import update_job
+
 DEFAULT_PROMPT = "Describe in detail what happens in this video, including visuals and audio."
 DEFAULT_MODEL = "gemini-2.0-flash"
 
@@ -18,7 +20,19 @@ class AppError(Exception):
         self.code = code
 
 
-async def analyze_video(url: str, prompt: str = DEFAULT_PROMPT) -> dict:
+async def process_job(job_id: str, url: str, prompt: str) -> None:
+    """Background task: download video, analyze with Gemini, update Firestore."""
+    try:
+        update_job(job_id, status="processing")
+        result = await _analyze_video(url, prompt or DEFAULT_PROMPT)
+        update_job(job_id, status="completed", result=result)
+    except AppError as e:
+        update_job(job_id, status="failed", error={"code": e.code, "message": str(e)})
+    except Exception as e:
+        update_job(job_id, status="failed", error={"code": "INTERNAL_ERROR", "message": str(e)})
+
+
+async def _analyze_video(url: str, prompt: str) -> dict:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise AppError("MISCONFIGURATION", "GEMINI_API_KEY is not set.")
@@ -27,10 +41,10 @@ async def analyze_video(url: str, prompt: str = DEFAULT_PROMPT) -> dict:
     tmp_path = tempfile.mktemp(suffix=".mp4")
 
     try:
-        # Step 1: Download video via yt-dlp (blocking → offloaded to thread)
+        # Step 1: Download video via yt-dlp (blocking -> offloaded to thread)
         await asyncio.to_thread(_download_video, url, tmp_path)
 
-        # Step 2: Upload to Gemini File API (blocking → offloaded to thread)
+        # Step 2: Upload to Gemini File API (blocking -> offloaded to thread)
         client = genai.Client(api_key=api_key)
         uploaded_file = await asyncio.to_thread(client.files.upload, file=tmp_path)
 
@@ -51,7 +65,7 @@ async def analyze_video(url: str, prompt: str = DEFAULT_PROMPT) -> dict:
         if uploaded_file.state.name == "FAILED":
             raise AppError("GEMINI_FILE_FAILED", "Gemini file processing failed.")
 
-        # Step 4: Generate content (blocking → offloaded to thread)
+        # Step 4: Generate content (blocking -> offloaded to thread)
         response = await asyncio.to_thread(
             client.models.generate_content,
             model=model_name,
