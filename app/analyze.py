@@ -2,7 +2,7 @@ import os
 import tempfile
 import time
 
-import google.generativeai as genai
+from google import genai
 import yt_dlp
 
 DEFAULT_PROMPT = "Describe in detail what happens in this video, including visuals and audio."
@@ -31,8 +31,8 @@ def analyze_video(url: str, prompt: str = DEFAULT_PROMPT) -> dict:
         _download_video(url, tmp_path)
 
         # Step 2: Upload to Gemini File API
-        genai.configure(api_key=api_key)
-        uploaded_file = genai.upload_file(tmp_path, mime_type="video/mp4")
+        client = genai.Client(api_key=api_key)
+        uploaded_file = client.files.upload(file=tmp_path)
 
         # Step 3: Poll until file state is ACTIVE
         attempts = 0
@@ -43,15 +43,17 @@ def analyze_video(url: str, prompt: str = DEFAULT_PROMPT) -> dict:
                     "Gemini file processing timed out after 2 minutes.",
                 )
             time.sleep(POLL_INTERVAL_SECONDS)
-            uploaded_file = genai.get_file(uploaded_file.name)
+            uploaded_file = client.files.get(name=uploaded_file.name)
             attempts += 1
 
         if uploaded_file.state.name == "FAILED":
             raise AppError("GEMINI_FILE_FAILED", "Gemini file processing failed.")
 
         # Step 4: Generate content
-        model = genai.GenerativeModel(model_name=model_name)
-        response = model.generate_content([uploaded_file, prompt])
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[uploaded_file, prompt],
+        )
 
         return {"analysis": response.text, "model": model_name}
 
