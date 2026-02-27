@@ -1,6 +1,6 @@
+import asyncio
 import os
 import tempfile
-import time
 
 from google import genai
 import yt_dlp
@@ -18,7 +18,7 @@ class AppError(Exception):
         self.code = code
 
 
-def analyze_video(url: str, prompt: str = DEFAULT_PROMPT) -> dict:
+async def analyze_video(url: str, prompt: str = DEFAULT_PROMPT) -> dict:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise AppError("MISCONFIGURATION", "GEMINI_API_KEY is not set.")
@@ -27,14 +27,14 @@ def analyze_video(url: str, prompt: str = DEFAULT_PROMPT) -> dict:
     tmp_path = tempfile.mktemp(suffix=".mp4")
 
     try:
-        # Step 1: Download video via yt-dlp (platform-agnostic, native Python)
-        _download_video(url, tmp_path)
+        # Step 1: Download video via yt-dlp (blocking → offloaded to thread)
+        await asyncio.to_thread(_download_video, url, tmp_path)
 
-        # Step 2: Upload to Gemini File API
+        # Step 2: Upload to Gemini File API (blocking → offloaded to thread)
         client = genai.Client(api_key=api_key)
-        uploaded_file = client.files.upload(file=tmp_path)
+        uploaded_file = await asyncio.to_thread(client.files.upload, file=tmp_path)
 
-        # Step 3: Poll until file state is ACTIVE
+        # Step 3: Poll until file state is ACTIVE (non-blocking sleep)
         attempts = 0
         while uploaded_file.state.name == "PROCESSING":
             if attempts >= MAX_POLL_ATTEMPTS:
@@ -42,15 +42,18 @@ def analyze_video(url: str, prompt: str = DEFAULT_PROMPT) -> dict:
                     "GEMINI_TIMEOUT",
                     "Gemini file processing timed out after 2 minutes.",
                 )
-            time.sleep(POLL_INTERVAL_SECONDS)
-            uploaded_file = client.files.get(name=uploaded_file.name)
+            await asyncio.sleep(POLL_INTERVAL_SECONDS)
+            uploaded_file = await asyncio.to_thread(
+                client.files.get, name=uploaded_file.name
+            )
             attempts += 1
 
         if uploaded_file.state.name == "FAILED":
             raise AppError("GEMINI_FILE_FAILED", "Gemini file processing failed.")
 
-        # Step 4: Generate content
-        response = client.models.generate_content(
+        # Step 4: Generate content (blocking → offloaded to thread)
+        response = await asyncio.to_thread(
+            client.models.generate_content,
             model=model_name,
             contents=[uploaded_file, prompt],
         )
