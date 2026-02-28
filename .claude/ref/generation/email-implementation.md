@@ -1,6 +1,6 @@
 # Email System — Platform-Agnostic Implementation Guide
 
-> **Purpose:** This guide serves as a template for implementing the email system in every new project of the Richi ecosystem. Replace all `{{SPOKE_NAME}}` and `{{SPOKE_DISPLAY}}` placeholders with the respective values (e.g., `memobot` / `MemoBot`).
+> **Purpose:** This guide serves as a template for implementing the email system in every project. Replace all `{{PROJECT_NAME}}` and `{{PROJECT_DISPLAY}}` placeholders with the respective values (e.g., `moviemind` / `MovieMind`).
 
 ---
 
@@ -41,7 +41,7 @@ CREATE POLICY "Public read access for email assets"
 - Format: PNG with transparency
 - Max file size: **50 KB** (critical for email deliverability)
 - Recommended dimensions: 96×96 px or 128×128 px
-- Naming convention: `{{SPOKE_NAME}}-logo.png`
+- Naming convention: `{{PROJECT_NAME}}-logo.png`
 
 > ⚠️ **Do NOT use logos larger than 50 KB.** Large attachments hurt deliverability scores and may cause emails to land in spam. Compress before uploading.
 
@@ -50,19 +50,19 @@ CREATE POLICY "Public read access for email assets"
 ## 2. Sender Schema
 
 ```
-{type}.{spoke}@contact.richi.solutions
+{type}.{project}@contact.richi.solutions
 ```
 
 ### Examples
 
 | Email Type | Sender Address | Display Name |
 |---|---|---|
-| Contact Form | `kontakt.{{SPOKE_NAME}}@contact.richi.solutions` | `{{SPOKE_DISPLAY}} Kontakt` |
-| Welcome Email | `willkommen.{{SPOKE_NAME}}@contact.richi.solutions` | `{{SPOKE_DISPLAY}}` |
-| Password Reset | `auth.{{SPOKE_NAME}}@contact.richi.solutions` | `{{SPOKE_DISPLAY}} Security` |
-| Newsletter / Updates | `news.{{SPOKE_NAME}}@contact.richi.solutions` | `{{SPOKE_DISPLAY}} News` |
-| Billing / Subscription | `billing.{{SPOKE_NAME}}@contact.richi.solutions` | `{{SPOKE_DISPLAY}} Billing` |
-| System / Fallback | `noreply.{{SPOKE_NAME}}@contact.richi.solutions` | `{{SPOKE_DISPLAY}}` |
+| Contact Form | `kontakt.{{PROJECT_NAME}}@contact.richi.solutions` | `{{PROJECT_DISPLAY}} Kontakt` |
+| Welcome Email | `willkommen.{{PROJECT_NAME}}@contact.richi.solutions` | `{{PROJECT_DISPLAY}}` |
+| Password Reset | `auth.{{PROJECT_NAME}}@contact.richi.solutions` | `{{PROJECT_DISPLAY}} Security` |
+| Newsletter / Updates | `news.{{PROJECT_NAME}}@contact.richi.solutions` | `{{PROJECT_DISPLAY}} News` |
+| Billing / Subscription | `billing.{{PROJECT_NAME}}@contact.richi.solutions` | `{{PROJECT_DISPLAY}} Billing` |
+| System / Fallback | `noreply.{{PROJECT_NAME}}@contact.richi.solutions` | `{{PROJECT_DISPLAY}}` |
 
 > **Note:** No additional DNS configuration is needed. Any prefix works immediately since `contact.richi.solutions` is already fully verified.
 
@@ -220,7 +220,7 @@ serve(async (req) => {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
     body: JSON.stringify({
-      from: `${brand.name} Kontakt <kontakt.{{SPOKE_NAME}}@contact.richi.solutions>`,
+      from: `${brand.name} Kontakt <kontakt.{{PROJECT_NAME}}@contact.richi.solutions>`,
       to: ["info@richi.solutions"],
       subject: `Neue Kontaktanfrage von ${name}`,
       reply_to: email,
@@ -234,7 +234,7 @@ serve(async (req) => {
     method: "POST",
     headers: { ... },
     body: JSON.stringify({
-      from: `${brand.name} <noreply.{{SPOKE_NAME}}@contact.richi.solutions>`,
+      from: `${brand.name} <noreply.{{PROJECT_NAME}}@contact.richi.solutions>`,
       to: [email],
       subject: `Deine Nachricht an ${brand.name}`,
       html: buildEmailHtml(brand, confirmBody, { preheader: "Wir haben deine Nachricht erhalten" }),
@@ -261,13 +261,13 @@ serve(async (req) => {
 
 | Template | From | Subject |
 |---|---|---|
-| `welcome` | `willkommen.{{SPOKE_NAME}}@...` | Welcome to {{SPOKE_DISPLAY}}! |
-| `password_reset_confirm` | `auth.{{SPOKE_NAME}}@...` | Password successfully changed |
-| `subscription_created` | `billing.{{SPOKE_NAME}}@...` | Your subscription is active |
-| `subscription_cancelled` | `billing.{{SPOKE_NAME}}@...` | Subscription cancelled |
-| `payment_succeeded` | `billing.{{SPOKE_NAME}}@...` | Payment confirmation |
-| `payment_failed` | `billing.{{SPOKE_NAME}}@...` | Payment issue |
-| `notification` | `noreply.{{SPOKE_NAME}}@...` | Generic notification |
+| `welcome` | `willkommen.{{PROJECT_NAME}}@...` | Welcome to {{PROJECT_DISPLAY}}! |
+| `password_reset_confirm` | `auth.{{PROJECT_NAME}}@...` | Password successfully changed |
+| `subscription_created` | `billing.{{PROJECT_NAME}}@...` | Your subscription is active |
+| `subscription_cancelled` | `billing.{{PROJECT_NAME}}@...` | Subscription cancelled |
+| `payment_succeeded` | `billing.{{PROJECT_NAME}}@...` | Payment confirmation |
+| `payment_failed` | `billing.{{PROJECT_NAME}}@...` | Payment issue |
+| `notification` | `noreply.{{PROJECT_NAME}}@...` | Generic notification |
 
 All templates use `buildEmailHtml()` + `attachments: [logoAttachment]` for consistent branding and CID-embedded logo.
 
@@ -346,11 +346,11 @@ Automatically included by `buildEmailHtml()`:
 
 ```html
 <p style="font-size:12px;color:#9CA3AF;">
-  {{SPOKE_DISPLAY}} — Ein Produkt von Richi<br>
+  {{PROJECT_DISPLAY}} — Ein Produkt von Richi<br>
   <a href="mailto:info@richi.solutions">info@richi.solutions</a>
 </p>
 <p style="font-size:11px;color:#D1D5DB;">
-  © 2025 {{SPOKE_DISPLAY}}
+  © 2025 {{PROJECT_DISPLAY}}
 </p>
 ```
 
@@ -361,7 +361,7 @@ Automatically included by `buildEmailHtml()`:
 - [ ] `RESEND_API_KEY` configured as backend secret
 - [ ] Logo uploaded to `email-assets` bucket (PNG, ≤ 50 KB, 96–128 px)
 - [ ] `AppBrand` config created with correct `logoUrl`, `logoCid`, colors
-- [ ] `{{SPOKE_NAME}}` and `{{SPOKE_DISPLAY}}` replaced in all templates
+- [ ] `{{PROJECT_NAME}}` and `{{PROJECT_DISPLAY}}` replaced in all templates
 - [ ] `send-contact-email` edge function created and deployed
 - [ ] `send-transactional-email` edge function created and deployed
 - [ ] Both functions use `getLogoAttachment()` + `attachments` array

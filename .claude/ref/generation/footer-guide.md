@@ -67,7 +67,7 @@ Horizontal row of icon links. Each link:
 - Has an `aria-label` for accessibility
 - Uses icon components (Lucide or custom SVG)
 
-**Required links (Hub):**
+**Social media links:**
 
 | Platform  | URL | Icon |
 |-----------|-----|------|
@@ -76,16 +76,14 @@ Horizontal row of icon links. Each link:
 | TikTok    | `https://tiktok.com/@richi.solutions` | TikTok icon (custom SVG) |
 | YouTube   | `https://www.youtube.com/@Richi.Solutions` | YouTube icon |
 
-**Project-specific social links:**
-- The project CAN add its own social media links or replace Hub links
-- Recommendation: Use project-specific links when the product has its own social channels
+Projects can add their own social media links or replace the defaults above.
 
 #### 2.4 Language Selector
 
 - Dropdown menu with all supported languages
 - Displays the currently selected language
 - Globe icon + language name + chevron-down
-- Minimum: `de`, `en`, `es` (Hub standard)
+- Minimum: `de`, `en`, `es`
 - Project may add additional languages
 
 ---
