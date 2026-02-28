@@ -18,3 +18,4 @@ Use `@.claude/ref/<path>` syntax to load in Claude Code.
 | Flutter / Mobile | `.claude/ref/mobile/flutter-kb.md` |
 | Product lifecycle phases | `.claude/ref/lifecycle.md` |
 | Ideation → Product Spec | `.claude/ref/ideation-to-product.md` |
+| Agent & Skill building | `.claude/ref/agent-skill-building.md` |

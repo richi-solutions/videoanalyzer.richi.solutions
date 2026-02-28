@@ -1,6 +1,8 @@
 ---
 name: update-dotclaude
 description: Pulls latest .claude/ configuration from the central GitHub repo into the current project via git subtree. Use after updates to the central .claude template.
+disable-model-invocation: true
+allowed-tools: Bash
 ---
 
 Pull the latest `.claude/` template into this project:

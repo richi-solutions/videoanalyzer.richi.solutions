@@ -1,6 +1,8 @@
 ---
 name: security-audit
 description: Run a full security audit — gitleaks, semgrep, Supabase RLS checks. Fixes all findings and re-runs until clean.
+disable-model-invocation: true
+allowed-tools: Bash, Read, Edit, Grep, Glob
 ---
 
 # Security Audit

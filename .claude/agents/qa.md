@@ -3,6 +3,7 @@ name: qa
 description: QA agent that generates tests for a code snippet, runs them, and reports pass/fail results back. Use to validate code correctness before shipping.
 model: sonnet
 tools: Read, Write, Bash
+maxTurns: 20
 ---
 
 # QA Subagent

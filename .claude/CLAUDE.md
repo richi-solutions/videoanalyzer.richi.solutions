@@ -101,6 +101,10 @@ Lovable "Publish"  →  Production  (manual gate)
 All specialized guides (UI/UX, Email, Analytics, Flutter, etc.) are in `.claude/ref/`.
 Load them on demand: `@.claude/ref/<path>` — see `rules/index.md` for the full map.
 
+**Mandatory:** When creating or modifying agents or skills, always load
+`@.claude/ref/agent-skill-building.md` first. All agents/skills must pass the
+quality checklist defined in that guide before commit.
+
 ---
 
 ## Deployment Gate

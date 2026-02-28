@@ -3,6 +3,7 @@ name: code-reviewer
 description: Unbiased code review of a snippet with zero prior context. Returns actionable recommendations on correctness, readability, performance, and security.
 model: sonnet
 tools: Read, Write
+maxTurns: 15
 ---
 
 # Code Reviewer Subagent

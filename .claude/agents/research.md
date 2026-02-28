@@ -3,6 +3,7 @@ name: research
 description: Deep research agent with full web and file access. Use for investigations that require many searches, reading docs, or exploring large codebases without polluting parent context.
 model: sonnet
 tools: Read, Glob, Grep, WebSearch, WebFetch
+maxTurns: 20
 ---
 
 # Research Subagent

@@ -3,6 +3,7 @@ name: security-auditor
 description: Runs gitleaks, semgrep, and supabase RLS checks. Fixes all findings autonomously and re-runs until clean.
 model: sonnet
 tools: Bash, Read, Edit, Grep, Glob
+maxTurns: 25
 ---
 
 # Security Auditor Agent

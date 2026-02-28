@@ -1,8 +1,9 @@
 ---
 name: email-classifier
 description: Classify a chunk of Gmail emails into Action Required, Waiting On, or Reference categories. Used by gmail-label skill for parallel classification.
-model: sonnet
+model: haiku
 tools: Read, Write
+maxTurns: 10
 ---
 
 # Email Classifier Subagent
