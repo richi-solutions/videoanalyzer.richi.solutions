@@ -5,6 +5,10 @@ from typing import Any
 
 from google.cloud import firestore
 
+# Jobs stuck in "processing" longer than this are marked as failed.
+# Cloud Run may kill background tasks after ~200s (CPU throttling).
+STALE_JOB_TIMEOUT_SECONDS = 300
+
 
 def _get_db() -> firestore.Client:
     project = os.getenv("GCP_PROJECT_ID")
@@ -44,4 +48,22 @@ def get_job(job_id: str) -> dict | None:
         return None
     data = doc.to_dict()
     data["id"] = doc.id
+
+    # Detect stale jobs: if "processing" for too long, mark as failed.
+    # This catches background tasks killed by Cloud Run CPU throttling.
+    if data.get("status") == "processing" and data.get("updated_at"):
+        try:
+            updated = datetime.fromisoformat(data["updated_at"])
+            age = (datetime.now(timezone.utc) - updated).total_seconds()
+            if age > STALE_JOB_TIMEOUT_SECONDS:
+                stale_error = {
+                    "code": "JOB_STALE",
+                    "message": f"Job stuck in processing for {int(age)}s. Background task likely killed by runtime.",
+                }
+                update_job(job_id, status="failed", error=stale_error)
+                data["status"] = "failed"
+                data["error"] = stale_error
+        except (ValueError, TypeError):
+            pass
+
     return data
