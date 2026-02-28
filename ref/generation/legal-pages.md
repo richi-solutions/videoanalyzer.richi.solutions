@@ -10,8 +10,7 @@
 ## Table of Contents
 
 1. [Overview & Context](#1-overview--context)
-2. [Hub Owner Information (mandatory details)](#2-hub-owner-information-mandatory-details)
-3. [Hub Architecture & Processes (disclosure)](#3-hub-architecture--processes-disclosure)
+2. [Operator Information (mandatory details)](#2-operator-information-mandatory-details)
 4. [Imprint — Template & Mandatory Components](#4-imprint--template--mandatory-components)
 5. [Terms of Service — Template & Mandatory Components](#5-terms-of-service--template--mandatory-components)
 6. [Privacy Policy — Template & Mandatory Components](#6-privacy-policy--template--mandatory-components)
@@ -24,89 +23,38 @@
 
 ## 1. Overview & Context
 
-Every project in the Richi ecosystem must provide its own legal pages. These reference the Hub as the central instance for authentication (SSO) and payment processing (Stripe).
+Every project must provide its own legal pages covering imprint, terms of service, and privacy policy. Each project handles authentication and payment processing independently.
 
-### What the Hub provides
-- **Authentication (SSO):** HMAC-SHA256 signed one-time tokens, 60-second validity
-- **Payment processing:** Stripe Payments Europe Ltd. (centrally via richi.solutions)
-- **Profile synchronization:** Automatic sync of name, email, avatar, username
-- **Subscription management:** Central management via Hub dashboard and Stripe customer portal
-- **Dual billing:** Subscriptions can also be processed via the project's own Stripe account
-
-### What the project is responsible for
-- Its own data processing and storage
-- Its own AI features and their disclosure
-- Its own third-party integrations
-- Local user accounts and passwords
-- Its own cookie/tracking usage
+### What each project is responsible for
+- Authentication (own Supabase Auth)
+- Payment processing (own Stripe account)
+- Data processing and storage
+- AI features and their disclosure
+- Third-party integrations
+- User accounts and passwords
+- Cookie/tracking usage
 
 ---
 
-## 2. Hub Owner Information (mandatory details)
+## 2. Operator Information (mandatory details)
 
-This information is fixed and must be correctly referenced in all project legal pages:
+Each project must provide its own operator information. Fill in the placeholders:
 
 ```
-Company:            Richi AI
-Owner:              Yves-Marcel Richel
-Legal form:         Sole proprietorship
-Address:            Homburger Landstr. 851, 60437 Frankfurt am Main, Germany
-Email:              info@richi.solutions
-Website:            https://www.richi.solutions
-VAT ID:             Not yet applicable (small business exemption per § 19 UStG)
+Company:            [PROJECT_COMPANY_NAME]
+Owner:              [PROJECT_OWNER]: [NAME]
+Legal form:         [PROJECT_LEGAL_FORM]
+Address:            [PROJECT_ADDRESS_STREET], [PROJECT_ADDRESS_ZIP_CITY], [PROJECT_COUNTRY]
+Email:              [PROJECT_EMAIL]
+Website:            [PROJECT_WEBSITE]
+VAT ID:             [PROJECT_VAT_ID_OR_SMALL_BUSINESS_NOTE]
 
 Responsible for content (§ 18 para. 2 MStV):
-                    Yves-Marcel Richel, Owner, Richi AI
+                    [NAME], [ROLE], [PROJECT_COMPANY_NAME]
 
 Competent supervisory authority (data protection):
-                    The Hessian Commissioner for Data Protection and Freedom of Information (HBDI)
-                    P.O. Box 3163, 65021 Wiesbaden, Germany
-                    https://datenschutz.hessen.de
+                    [PROJECT_COMPETENT_SUPERVISORY_AUTHORITY]
 ```
-
----
-
-## 3. Hub Architecture & Processes (disclosure)
-
-### 3.1 SSO Process (Single Sign-On)
-
-The Hub provides SSO for all projects:
-
-- **Mechanism:** HMAC-SHA256 signed one-time tokens
-- **Token validity:** 60 seconds
-- **Transmitted data:** Name, email, avatar URL, username
-- **NOT transmitted:** Passwords, payment data, credit card information
-- **Flow:** Popup-based (fallback: full redirect)
-- **Legal basis:** Performance of contract (Art. 6(1)(b) GDPR)
-
-### 3.2 Profile Synchronization
-
-- **Direction:** Project → Hub (push)
-- **Synchronized fields:** Display name, email, avatar URL, bio, location, username, preferences
-- **Conflict resolution:** Timestamp-based (project wins), Hub logs conflicts
-- **Legal basis:** Performance of contract (Art. 6(1)(b) GDPR)
-
-### 3.3 Subscription Management
-
-- **Payment processor:** Stripe Payments Europe Ltd. (PCI DSS Level 1 certified)
-- **Data stored in Hub:** Stripe customer ID, subscription status, plan, billing period
-- **NOT stored:** Credit card data, bank details
-- **Dual billing:** Projects can use their own Stripe accounts; tier merging follows "highest-tier-wins"
-- **Webhook sync:** Real-time synchronization via Stripe webhooks
-- **Fallback:** 7-day TTL when Hub is unreachable
-- **Legal basis:** Performance of contract (Art. 6(1)(b) GDPR)
-
-### 3.4 Account Deletion
-
-- **User can delete account in Hub** → deletion within 30 days
-- **Tax-relevant data:** 10-year retention (§ 147 AO, § 257 HGB)
-- **SSO tokens:** Expire after 60s, regular cleanup
-
-### 3.5 Hosting Infrastructure (Hub)
-
-- **Platform:** Lovable Cloud (based on Supabase)
-- **Data centers:** EU
-- **Security measures:** SSL/TLS, Row-Level Security (RLS), encrypted tokens, timing-safe API key comparisons
 
 ---
 
@@ -136,18 +84,18 @@ Imprint
 Information pursuant to § 5 DDG (Digital Services Act)
 
 --- Company Information ---
-[SPOKE_COMPANY_NAME]
-[SPOKE_OWNER_OR_MD]: [NAME]
-[SPOKE_ADDRESS_STREET]
-[SPOKE_ADDRESS_ZIP_CITY]
-[SPOKE_COUNTRY]
+[PROJECT_COMPANY_NAME]
+[PROJECT_OWNER_OR_MD]: [NAME]
+[PROJECT_ADDRESS_STREET]
+[PROJECT_ADDRESS_ZIP_CITY]
+[PROJECT_COUNTRY]
 
-Email: [SPOKE_EMAIL]
-Phone: [SPOKE_PHONE_OR_NOTE]
-Website: [SPOKE_WEBSITE]
+Email: [PROJECT_EMAIL]
+Phone: [PROJECT_PHONE_OR_NOTE]
+Website: [PROJECT_WEBSITE]
 
-VAT ID: [SPOKE_VAT_ID_OR_SMALL_BUSINESS_NOTE]
-Legal form: [SPOKE_LEGAL_FORM]
+VAT ID: [PROJECT_VAT_ID_OR_SMALL_BUSINESS_NOTE]
+Legal form: [PROJECT_LEGAL_FORM]
 
 --- Responsible for Content (§ 18 para. 2 MStV) ---
 [NAME], [ROLE], [COMPANY_NAME]
@@ -165,13 +113,13 @@ we have no influence. Pursuant to § 8 DDG, as a service provider we are not
 obligated to monitor transmitted or stored third-party information.
 
 Copyright:
-All content and works created by [SPOKE_COMPANY_NAME] are protected by German
+All content and works created by [PROJECT_COMPANY_NAME] are protected by German
 copyright law. Reproduction, editing, or distribution beyond the limits of
 copyright law requires written consent.
 
 Notice on AI Usage (EU AI Act):
-[SPOKE_COMPANY_NAME] uses AI systems in accordance with Regulation (EU)
-2024/1689 (EU AI Act). [SPOKE_AI_RISK_CATEGORY_AND_DETAILS]. No fully
+[PROJECT_COMPANY_NAME] uses AI systems in accordance with Regulation (EU)
+2024/1689 (EU AI Act). [PROJECT_AI_RISK_CATEGORY_AND_DETAILS]. No fully
 automated decision-making with legal or significant effects on users takes
 place. For more information, see our privacy policy.
 
@@ -181,12 +129,6 @@ We are [not obligated and not willing / willing] to participate in a dispute
 resolution procedure before a consumer arbitration board.
 Link: https://ec.europa.eu/consumers/odr/
 
---- Connection to Richi Solutions ---
-[SPOKE_PRODUCT_NAME] is a product in the Richi ecosystem. Authentication (SSO)
-and subscription management are provided centrally via richi.solutions.
-Operator of the Hub: Richi AI, Yves-Marcel Richel, Homburger Landstr. 851,
-60437 Frankfurt am Main, Germany. More information:
-https://www.richi.solutions/impressum
 ```
 
 ---
@@ -201,11 +143,11 @@ https://www.richi.solutions/impressum
 |---|---------|-------------|------------|
 | 1 | **Scope & Provider** | Who offers what, full provider identification | § 312d BGB |
 | 2 | **AI Usage (EU AI Act)** | Transparency about AI use, risk category, user rights | Art. 50, 86 Regulation 2024/1689 |
-| 3 | **Service Description** | What the service includes (incl. Hub integration) | BGB §§ 305ff |
+| 3 | **Service Description** | What the service includes | BGB §§ 305ff |
 | 4 | **Intellectual Property** | Ownership of user and platform content | UrhG |
 | 5 | **User Obligations** | Accurate information, no misuse | BGB |
 | 6 | **Limitation of Liability** | Incl. AI liability, exceptions for cardinal obligations | BGB § 309 no. 7 |
-| 7 | **Third-Party Services** | Hub (SSO, billing), Stripe, AI providers | GDPR Art. 28 |
+| 7 | **Third-Party Services** | Supabase, Stripe, AI providers | GDPR Art. 28 |
 | 8 | **Applicable Law & Jurisdiction** | German law, exclusion of CISG, jurisdiction | BGB |
 | 9 | **Subscriptions & Payments** | Stripe, cancellation, withdrawal (§ 356 para. 5 BGB) | Distance selling law |
 | 10 | **Account Management** | Deletion, data retention, changes | GDPR Art. 17 |
@@ -219,43 +161,32 @@ https://www.richi.solutions/impressum
 Terms of Service
 
 --- 1. Scope and Provider ---
-These terms of service govern the use of [SPOKE_PRODUCT_NAME],
-operated by [SPOKE_COMPANY_NAME], [SPOKE_ADDRESS].
+These terms of service govern the use of [PROJECT_PRODUCT_NAME],
+operated by [PROJECT_COMPANY_NAME], [PROJECT_ADDRESS].
 
-[SPOKE_PRODUCT_NAME] is part of the Richi ecosystem. Authentication and
-subscription management are provided centrally via richi.solutions (Richi AI,
-Yves-Marcel Richel). The Hub's terms of service apply at
-https://www.richi.solutions/agb.
-
-Our services include: [SPOKE_SERVICE_DESCRIPTION].
+Our services include: [PROJECT_SERVICE_DESCRIPTION].
 
 --- 2. AI Usage (EU AI Act) ---
-[SPOKE_PRODUCT_NAME] uses AI systems in accordance with Regulation (EU)
+[PROJECT_PRODUCT_NAME] uses AI systems in accordance with Regulation (EU)
 2024/1689 (EU AI Act).
 
-Areas of use: [SPOKE_AI_USE_CASES_LIST]
+Areas of use: [PROJECT_AI_USE_CASES_LIST]
 
-Risk category: [SPOKE_AI_RISK_CATEGORY]
+Risk category: [PROJECT_AI_RISK_CATEGORY]
 
 [Include the following mandatory disclosures per Art. 50, 86 EU AI Act:]
 - AI-generated content is labeled as such
 - Users have the right to human review
 - User data is not used to train external AI models
-- AI models used: [SPOKE_AI_MODELS_LIST]
+- AI models used: [PROJECT_AI_MODELS_LIST]
 
 --- 3. Service Description ---
-[SPOKE_DETAILED_SERVICE_DESCRIPTION]
-
-Use of [SPOKE_PRODUCT_NAME] requires an account at
-richi.solutions (free of charge). Login is via Single Sign-On (SSO)
-through the Richi Hub. Name, email, avatar, and username are transmitted
-from the Hub to [SPOKE_PRODUCT_NAME].
+[PROJECT_DETAILED_SERVICE_DESCRIPTION]
 
 --- 8. Subscriptions and Payments ---
 Subscriptions are processed via Stripe Payments Europe Ltd.
-[centrally via richi.solutions / via the project's own Stripe account].
 
-Available plans: [SPOKE_PLAN_OVERVIEW]
+Available plans: [PROJECT_PLAN_OVERVIEW]
 Cancellation: At any time via the dashboard or Stripe customer portal.
 Effective: At the end of the current billing period.
 
@@ -264,16 +195,14 @@ pursuant to § 356 para. 5 BGB upon commencement of contract performance,
 provided the consumer has expressly consented.
 
 --- 9. Account Management ---
-Account deletion: You can delete your local account in the settings.
-Your Hub account at richi.solutions will NOT be deleted.
-To delete your Hub account: https://www.richi.solutions/settings
+Account deletion: You can delete your account in the settings.
 
 Data retention: After account deletion, data is removed within 30 days,
 unless legal retention obligations apply
 (tax data: 10 years per § 147 AO, § 257 HGB).
 
 --- 11. Right of Withdrawal ---
-[SPOKE_COMPLETE_WITHDRAWAL_NOTICE_PER_BGB]
+[PROJECT_COMPLETE_WITHDRAWAL_NOTICE_PER_BGB]
 (14-day period, model withdrawal form per Annex 2 to Art. 246a § 1
 para. 2 sentence 1 no. 1 EGBGB)
 ```
@@ -296,7 +225,7 @@ para. 2 sentence 1 no. 1 EGBGB)
 | 6 | **Hosting** | Where data is stored | Art. 13 para. 1 lit. f GDPR |
 | 7 | **Data processors** | All third parties with DPA | Art. 28 GDPR |
 | 8 | **Cookies & local storage** | Technically necessary vs. tracking | § 25 TDDDG |
-| 9 | **SSO & profile synchronization** | Data transfer to/from Hub | Art. 13 para. 1 lit. e GDPR |
+| 9 | **Authentication** | Supabase Auth, data processed during login | Art. 13 para. 1 lit. e GDPR |
 | 10 | **Payment processing** | Stripe, PCI DSS | Art. 13 para. 1 lit. e GDPR |
 | 11 | **Data storage & security** | Technical measures | Art. 32 GDPR |
 | 12 | **International data transfers** | SCC, EU-US DPF | Art. 46 GDPR |
@@ -311,27 +240,27 @@ para. 2 sentence 1 no. 1 EGBGB)
 Privacy Policy
 GDPR-compliant · EU AI Act-compliant
 Last updated: [DATE]
-Applies to: [SPOKE_URL] and all subpages
+Applies to: [PROJECT_URL] and all subpages
 
 --- 1. Data Controller ---
-[SPOKE_COMPANY_NAME]
-[SPOKE_OWNER]: [NAME]
-[SPOKE_ADDRESS]
-Email: [SPOKE_EMAIL]
-Website: [SPOKE_WEBSITE]
+[PROJECT_COMPANY_NAME]
+[PROJECT_OWNER]: [NAME]
+[PROJECT_ADDRESS]
+Email: [PROJECT_EMAIL]
+Website: [PROJECT_WEBSITE]
 
 --- 2. Data Protection Contact ---
-For data protection inquiries: [SPOKE_PRIVACY_EMAIL]
+For data protection inquiries: [PROJECT_PRIVACY_EMAIL]
 [If DPO appointed: Data Protection Officer: [NAME], [EMAIL]]
 
 --- 3. AI Usage (EU AI Act) ---
-[SPOKE_PRODUCT_NAME] uses AI systems in accordance with Regulation (EU)
+[PROJECT_PRODUCT_NAME] uses AI systems in accordance with Regulation (EU)
 2024/1689 (EU AI Act) and the GDPR.
 
 Areas of use:
-- [SPOKE_AI_USE_CASE_1]
-- [SPOKE_AI_USE_CASE_2]
-- [SPOKE_AI_USE_CASE_N]
+- [PROJECT_AI_USE_CASE_1]
+- [PROJECT_AI_USE_CASE_2]
+- [PROJECT_AI_USE_CASE_N]
 
 Risk category: [low risk / high risk / etc.]
 
@@ -350,27 +279,18 @@ Your AI-related rights:
 --- 4. Data Categories ---
 - Contact data (name, email, username)
 - Technical data (IP address, browser, device, OS, pages visited)
-- [SPOKE_SPECIFIC_DATA_CATEGORIES]
+- [PROJECT_SPECIFIC_DATA_CATEGORIES]
 - Payment data (Stripe customer ID, subscription status — no credit card data)
 - SSO data (auth token, product associations, sync status)
-- [SPOKE_ADDITIONAL_CATEGORIES]
+- [PROJECT_ADDITIONAL_CATEGORIES]
 
 --- 7. Data Processors (Art. 28 GDPR) ---
 
-Hub-side (provided via richi.solutions):
-- Supabase/Lovable Cloud — Database, authentication,
-  serverless functions (EU)
-- Stripe Payments Europe Ltd. — Payment processing
-  (EU, PCI DSS certified)
-- Google LLC — AI models (Gemini)
-  (SCC per Art. 46 GDPR)
-- OpenAI LLC — AI models (GPT)
-  (SCC per Art. 46 GDPR)
-
-Project-side (own data processors):
-- [SPOKE_PROCESSOR_1] — [PURPOSE] ([LOCATION])
-- [SPOKE_PROCESSOR_2] — [PURPOSE] ([LOCATION])
-- [SPOKE_ADDITIONAL_PROCESSORS]
+- Supabase Inc. — Database, authentication, serverless functions (EU)
+- Stripe Payments Europe Ltd. — Payment processing (EU, PCI DSS certified)
+- [PROJECT_PROCESSOR_1] — [PURPOSE] ([LOCATION])
+- [PROJECT_PROCESSOR_2] — [PURPOSE] ([LOCATION])
+- [PROJECT_ADDITIONAL_PROCESSORS]
 
 All data processors are contractually bound to GDPR compliance.
 For transfers to third countries, SCCs and/or adequacy decisions
@@ -381,10 +301,10 @@ For transfers to third countries, SCCs and/or adequacy decisions
 - Session management
 - Language preferences
 - Authentication status
-- [SPOKE_ADDITIONAL_COOKIES]
+- [PROJECT_ADDITIONAL_COOKIES]
 
 [Tracking/analytics cookies (if applicable):]
-- [SPOKE_TRACKING_SERVICES — e.g., Google Analytics, Mixpanel]
+- [PROJECT_TRACKING_SERVICES — e.g., Google Analytics, Mixpanel]
 - Consent is obtained via [CONSENT_TOOL]
 - Legal basis: Art. 6(1)(a) GDPR, § 25 para. 1 TDDDG
 
@@ -392,23 +312,14 @@ For transfers to third countries, SCCs and/or adequacy decisions
 Legal basis for technically necessary cookies:
 Art. 6(1)(f) GDPR, § 25 para. 2 TDDDG
 
---- 9. SSO and Profile Synchronization ---
-[SPOKE_PRODUCT_NAME] uses Single Sign-On (SSO) via the Richi Hub
-(richi.solutions) for authentication.
+--- 9. Authentication ---
+[PROJECT_PRODUCT_NAME] uses Supabase Auth for authentication.
 
-During SSO login, the following data is transmitted from the Hub:
-- Name, email address, avatar URL, username
+Data processed during authentication:
+- Email address, display name, avatar URL
 
-Transmission occurs via time-limited, cryptographically signed
-one-time tokens (HMAC-SHA256, 60-second validity).
-
-Payment data is NEVER transmitted to the project.
-
-Profile synchronization: Changes to your profile in
-[SPOKE_PRODUCT_NAME] are synchronized to the Hub (and vice versa).
+Authentication data is stored securely using Supabase Row-Level Security (RLS).
 Legal basis: Performance of contract (Art. 6(1)(b) GDPR).
-
-More information: https://www.richi.solutions/datenschutz
 
 --- 13. Data Subject Rights (GDPR) ---
 - Right of access (Art. 15)
@@ -421,21 +332,15 @@ More information: https://www.richi.solutions/datenschutz
   (Art. 22 GDPR, Art. 86 EU AI Act)
 - Right to lodge a complaint with the competent supervisory authority
 
-Competent supervisory authority for the Hub:
-The Hessian Commissioner for Data Protection and
-Freedom of Information (HBDI)
-P.O. Box 3163, 65021 Wiesbaden, Germany
-https://datenschutz.hessen.de
-
-Competent supervisory authority for the project:
-[SPOKE_COMPETENT_SUPERVISORY_AUTHORITY]
+Competent supervisory authority:
+[PROJECT_COMPETENT_SUPERVISORY_AUTHORITY]
 
 --- 14. Retention Periods ---
 - Account data: Deletion within 30 days after account deletion
 - Tax-relevant data: 10 years (§ 147 AO, § 257 HGB)
 - SSO tokens: 60-second validity, regular cleanup
 - Server logs: max. 90 days
-- [SPOKE_ADDITIONAL_PERIODS]
+- [PROJECT_ADDITIONAL_PERIODS]
 ```
 
 ---
@@ -478,7 +383,7 @@ Every project that uses AI MUST disclose the following information:
 
 ## 8. Checklist: Project-Specific Additions
 
-> **IMPORTANT:** All of the following items MUST be filled in by the project operator. The Hub CANNOT provide this information.
+> **IMPORTANT:** All of the following items MUST be filled in by the project operator.
 
 ### 8.1 Imprint
 
@@ -497,13 +402,13 @@ Every project that uses AI MUST disclose the following information:
 
 - [ ] Detailed service description of the project
 - [ ] Pricing overview / plan structure
-- [ ] Payment modalities (Hub billing, dual billing, or project-only)
+- [ ] Payment modalities (Stripe integration, plan structure)
 - [ ] Withdrawal notice with model form
 - [ ] Product-specific usage rules
 - [ ] Minimum age / age restrictions (if applicable)
 - [ ] Usage limits (API calls, storage, etc.) (if applicable)
 - [ ] Fair use policy (if applicable)
-- [ ] Jurisdiction of the project operator (may differ from Hub)
+- [ ] Jurisdiction of the project operator
 
 ### 8.3 Privacy Policy
 
@@ -553,7 +458,7 @@ src/locales/es/legal.json
 
 - **Every user-visible string** must be an i18n key
 - **No hardcoded strings** in components
-- **Key structure** follows the Hub pattern: `imprint.*`, `privacy.*`, `terms.*`
+- **Key structure:** `imprint.*`, `privacy.*`, `terms.*`
 - **Legal terms** must be correctly translated into the target language (no machine translation without review)
 
 ---
@@ -568,17 +473,7 @@ src/pages/AGB.tsx          → /agb (or /:lang/agb)
 src/pages/Datenschutz.tsx  → /datenschutz (or /:lang/datenschutz)
 ```
 
-### 10.2 Links to Hub
-
-Every legal page SHOULD link to the corresponding Hub page:
-
-```
-Hub Imprint:         https://www.richi.solutions/impressum
-Hub Terms:           https://www.richi.solutions/agb
-Hub Privacy Policy:  https://www.richi.solutions/datenschutz
-```
-
-### 10.3 Footer Links (mandatory)
+### 10.2 Footer Links (mandatory)
 
 The footer of every project page MUST contain links to all three legal pages:
 
@@ -586,15 +481,7 @@ The footer of every project page MUST contain links to all three legal pages:
 Imprint | Terms of Service | Privacy Policy
 ```
 
-### 10.4 Reference to Hub
-
-Every project legal page MUST contain a clear notice that:
-1. The product is part of the Richi ecosystem
-2. SSO and billing are managed centrally via richi.solutions
-3. The Hub's own legal documents apply there
-4. Links to the Hub legal pages are provided
-
-### 10.5 Update Obligation
+### 10.3 Update Obligation
 
 - Legal pages must be updated when services, data processors, or regulatory requirements change
 - Significant changes must be communicated to users via email or in-app notification
@@ -604,15 +491,17 @@ Every project legal page MUST contain a clear notice that:
 
 ## Summary
 
-| What the Hub provides | What the project must provide |
+Each project must provide:
+
+| Component | Responsibility |
 |---|---|
-| Owner information (Richi AI) | Own provider identification |
-| SSO process description | Own service description |
-| Stripe/billing information | Own prices and plans |
-| Hub data processors | Own data processors |
-| Hub AI models (Gemini, GPT) | Own AI use cases |
-| GDPR rights template | Own supervisory authority |
-| Hub retention periods | Own retention periods |
-| Security measures (Hub) | Own security measures |
-| EU AI Act compliance (Hub) | EU AI Act compliance (project) |
-| i18n structure template | Own translations |
+| Provider identification | Full operator details per § 5 DDG |
+| Service description | What the project offers |
+| Prices and plans | Stripe integration, plan overview |
+| Data processors | All third parties with DPA |
+| AI use cases | Disclosure per EU AI Act |
+| Supervisory authority | Based on project operator location |
+| Retention periods | Per data category |
+| Security measures | Technical and organizational |
+| EU AI Act compliance | Risk category, transparency, rights |
+| i18n translations | All legal pages in supported languages |

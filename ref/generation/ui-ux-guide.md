@@ -1,7 +1,7 @@
 # UI/UX Guide — Mobile-First, Web-Ready
 
 > **Audience:** Developers who want to ensure a consistent, mobile-first user experience within the Richi ecosystem.
-> **Reference:** Richi Hub (`richisolutions.lovable.app`) as design reference.
+> **Reference:** Consistent mobile-first patterns across all projects.
 
 ---
 
@@ -377,9 +377,9 @@ Go through the following checklist before every release:
 
 ## 12 — Reference Implementation
 
-The Richi Hub implements all patterns listed above. Relevant files:
+Reference implementation files for all patterns listed above:
 
-| Pattern              | Hub File                               |
+| Pattern              | File                                   |
 |----------------------|-----------------------------------------|
 | Navigation           | `src/components/layout/Navbar.tsx`      |
 | Layout spacing       | `src/App.tsx` (main element)            |
