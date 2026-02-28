@@ -1,24 +1,106 @@
+import hashlib
 import os
-from fastapi import Header, HTTPException
+import time
+from collections import defaultdict
+from typing import Any
+
+from fastapi import Header, HTTPException, Request
+
+from app.jobs import _get_db
 
 
-async def require_api_key(x_api_key: str = Header(...)) -> None:
+# --- In-memory cache for Firestore key lookups ---
+_key_cache: dict[str, dict[str, Any]] = {}
+_KEY_CACHE_TTL = 300  # 5 minutes
+
+# --- In-memory sliding window rate limiter ---
+_rate_buckets: dict[str, list[float]] = defaultdict(list)
+
+
+def _hash_key(raw_key: str) -> str:
+    """SHA-256 hash of the raw API key for Firestore lookup."""
+    return hashlib.sha256(raw_key.encode()).hexdigest()
+
+
+def _lookup_api_key(raw_key: str) -> dict[str, Any] | None:
+    """Look up an API key in Firestore, with in-memory caching."""
+    key_hash = _hash_key(raw_key)
+
+    cached = _key_cache.get(key_hash)
+    if cached and time.time() - cached["_cached_at"] < _KEY_CACHE_TTL:
+        return cached
+
+    try:
+        db = _get_db()
+        docs = (
+            db.collection("api_keys")
+            .where("key_hash", "==", key_hash)
+            .where("active", "==", True)
+            .limit(1)
+            .stream()
+        )
+
+        for doc in docs:
+            data = doc.to_dict()
+            data["_cached_at"] = time.time()
+            _key_cache[key_hash] = data
+            return data
+    except Exception:
+        pass
+
+    return None
+
+
+def _check_rate_limit(key_id: str, max_per_minute: int) -> bool:
+    """Sliding window rate limiter. Returns True if request is allowed."""
+    now = time.time()
+    window_start = now - 60
+
+    _rate_buckets[key_id] = [t for t in _rate_buckets[key_id] if t > window_start]
+
+    if len(_rate_buckets[key_id]) >= max_per_minute:
+        return False
+
+    _rate_buckets[key_id].append(now)
+    return True
+
+
+async def require_api_key(request: Request, x_api_key: str = Header(...)) -> None:
+    key_name: str
+    rate_limit: int
+
+    # Fallback: single SERVICE_API_KEY env var (backwards-compatible)
     service_api_key = os.getenv("SERVICE_API_KEY")
+    if service_api_key and x_api_key == service_api_key:
+        key_name = "legacy"
+        rate_limit = 60
+    else:
+        # Multi-key mode: look up in Firestore
+        key_data = _lookup_api_key(x_api_key)
+        if not key_data:
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "ok": False,
+                    "error": {"code": "UNAUTHORIZED", "message": "Missing or invalid X-API-Key header."},
+                },
+            )
+        key_name = key_data.get("name", "unknown")
+        rate_limit = key_data.get("rate_limit", 60)
 
-    if not service_api_key:
+    # Per-key rate limiting
+    if not _check_rate_limit(key_name, rate_limit):
         raise HTTPException(
-            status_code=500,
+            status_code=429,
             detail={
                 "ok": False,
-                "error": {"code": "MISCONFIGURATION", "message": "Service API key not configured."},
+                "error": {
+                    "code": "RATE_LIMITED",
+                    "message": f"Rate limit exceeded ({rate_limit} requests/minute).",
+                },
             },
         )
 
-    if x_api_key != service_api_key:
-        raise HTTPException(
-            status_code=401,
-            detail={
-                "ok": False,
-                "error": {"code": "UNAUTHORIZED", "message": "Missing or invalid X-API-Key header."},
-            },
-        )
+    # Store key info on request for downstream logging
+    request.state.api_key_name = key_name
+    request.state.rate_limit = rate_limit

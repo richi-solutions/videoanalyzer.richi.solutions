@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -15,6 +16,9 @@ DEFAULT_MODEL = "gemini-2.0-flash"
 
 POLL_INTERVAL_SECONDS = 5
 MAX_POLL_ATTEMPTS = 24  # 2 minutes total
+MAX_VIDEO_DURATION_SECONDS = 600  # 10 minutes
+
+_URL_PATTERN = re.compile(r"^https?://[^\s/$.?#].[^\s]*$", re.IGNORECASE)
 
 
 def _log(level: str, event: str, **data):
@@ -27,6 +31,24 @@ class AppError(Exception):
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
         self.code = code
+
+
+def validate_url(url: str) -> None:
+    """Validate URL format before processing."""
+    if not _URL_PATTERN.match(url):
+        raise AppError("INVALID_INPUT", "URL must start with http:// or https://.")
+
+
+def _check_video_duration(url: str) -> float | None:
+    """Extract video duration via yt-dlp metadata (no download). Returns seconds or None."""
+    ydl_opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            return info.get("duration") if info else None
+    except Exception:
+        # If metadata extraction fails, let the actual download attempt handle it
+        return None
 
 
 async def process_job(job_id: str, url: str, prompt: str) -> None:
@@ -63,6 +85,17 @@ async def _analyze_video(job_id: str, url: str, prompt: str) -> dict:
     tmp_path = tempfile.mktemp(suffix=".mp4")
 
     try:
+        # Step 0: Validate URL and check video duration (no download)
+        validate_url(url)
+        duration = await asyncio.to_thread(_check_video_duration, url)
+        if duration is not None:
+            _log("INFO", "step_metadata_done", job_id=job_id, duration_s=round(duration, 1))
+            if duration > MAX_VIDEO_DURATION_SECONDS:
+                raise AppError(
+                    "VIDEO_TOO_LONG",
+                    f"Video duration ({int(duration)}s) exceeds limit ({MAX_VIDEO_DURATION_SECONDS}s).",
+                )
+
         # Step 1: Download video via yt-dlp (blocking -> offloaded to thread)
         _log("INFO", "step_download_start", job_id=job_id, url=url)
         t0 = time.time()
