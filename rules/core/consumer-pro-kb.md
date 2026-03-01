@@ -537,7 +537,7 @@ Use **Lovable.dev** for auto-deployment of edge + frontend.
 ### Pipeline Structure
 
 ```yaml
-# .github/workflows/ci.yml
+# .github/workflows/ci.yml — Phase 1 (always present)
 name: CI
 
 on:
@@ -552,7 +552,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: bun install
+      - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run build
@@ -560,27 +560,47 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    needs: quality
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: bun install
-      - run: bunx playwright install --with-deps
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e
+```
 
-  lighthouse:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: treosh/lighthouse-ci-action@v12
-        with:
-          configPath: ./lighthouserc.json
+### CI/CD Phase Gates
 
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
-      - uses: github/codeql-action/analyze@v3
+Not all CI/CD components are needed from day one. Adding them prematurely
+creates noise (failing workflows) without value. Follow this phasing:
+
+| Component | Phase | When to add |
+|-----------|-------|-------------|
+| **CI (lint, typecheck, build, test)** | Phase 1 (Launch) | Always — from first commit |
+| **Commitlint** | Phase 1 (Launch) | Always — enforces Conventional Commits |
+| **Security scanning (gitleaks, semgrep, osv)** | Phase 1 (Launch) | Always — distributed via dotclaude subtree |
+| **CodeQL** | Phase 3 (1k+ DAU) | Requires GitHub Advanced Security for private repos |
+| **Lighthouse CI** | Phase 3 (1k+ DAU) | When performance budgets matter |
+| **Deploy workflow** | Never (Lovable) | Lovable Cloud handles deployment — a separate deploy workflow is redundant |
+
+**IMPORTANT:** Do NOT add Phase 3 workflows to new projects. They will fail
+and provide no value at early stages. The CI workflow template above is
+sufficient for Phase 1. Security scanning is distributed automatically via
+the dotclaude subtree (`/update-dotclaude`).
+
+```yaml
+# Phase 3 additions (only when 1k+ DAU is reached):
+#
+# .github/workflows/lighthouse-ci.yml
+# lighthouse:
+#   uses: treosh/lighthouse-ci-action@v12
+#   with:
+#     configPath: ./lighthouserc.json
+#
+# .github/workflows/codeql.yml (requires GitHub Advanced Security)
+# security:
+#   uses: github/codeql-action/init@v3
+#   uses: github/codeql-action/analyze@v3
 ```
 
 ### Branch Mapping
@@ -725,7 +745,8 @@ Store schemas in `/events/v1/*.json`.
 - ✅ Consumer UX patterns (skeleton loaders, empty states)
 - ✅ PWA basics (manifest, service worker shell)
 - ✅ i18n setup (basic structure)
-- ⏭️ Skip: Full offline mode, complex observability
+- ✅ CI: lint, typecheck, build, test, commitlint, security scanning
+- ⏭️ Skip: Full offline mode, complex observability, Lighthouse CI, CodeQL, separate Deploy workflows
 
 ### Phase 2: Traction (100+ DAU)
 
