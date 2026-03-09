@@ -1,3 +1,16 @@
+"""
+API key authentication and per-key rate limiting middleware.
+
+Supports two authentication modes:
+- Multi-key (Firestore): Keys stored as SHA-256 hashes in the ``api_keys``
+  collection with individual ``rate_limit`` and ``active`` fields.
+- Legacy (env var): Single ``SERVICE_API_KEY`` env var for backward
+  compatibility with the TypeScript prototype.
+
+Keys are cached in memory for KEY_CACHE_TTL seconds to minimize Firestore
+reads. Rate limiting uses a per-key sliding window over the last 60 seconds.
+"""
+
 import hashlib
 import os
 import time
@@ -66,6 +79,23 @@ def _check_rate_limit(key_id: str, max_per_minute: int) -> bool:
 
 
 async def require_api_key(request: Request, x_api_key: str = Header(...)) -> None:
+    """FastAPI dependency that validates the X-API-Key header and enforces rate limits.
+
+    First checks ``SERVICE_API_KEY`` env var for backward-compatible single-key
+    auth. If that does not match, looks up the key in the Firestore ``api_keys``
+    collection (using a 5-minute in-memory cache).
+
+    Attaches ``request.state.api_key_name`` and ``request.state.rate_limit``
+    for use in downstream route handlers and logging.
+
+    Args:
+        request: The incoming FastAPI request object.
+        x_api_key: Value from the ``X-API-Key`` header (injected by FastAPI).
+
+    Raises:
+        HTTPException 401: Key not found or inactive.
+        HTTPException 429: Per-key rate limit exceeded.
+    """
     key_name: str
     rate_limit: int
 

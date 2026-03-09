@@ -1,3 +1,16 @@
+"""
+FastAPI application entry point for the VideoAnalyzer service.
+
+Defines three HTTP routes:
+- GET  /health                — liveness probe, no auth
+- POST /api/analyze           — submit a video URL for analysis (async job)
+- GET  /api/jobs/{job_id}     — poll job status and retrieve results
+
+Request validation, structured logging, and error envelope formatting are
+handled in this module. The actual analysis pipeline runs as a FastAPI
+background task via app/analyze.py.
+"""
+
 import json
 import sys
 import time
@@ -15,7 +28,14 @@ from app.jobs import create_job, get_job
 load_dotenv()
 
 
-def _log(level: str, event: str, **data):
+def _log(level: str, event: str, **data) -> None:
+    """Emit a structured JSON log entry to stdout for Cloud Run log aggregation.
+
+    Args:
+        level: Severity string (e.g., ``"INFO"``, ``"ERROR"``).
+        event: Short machine-readable event name (e.g., ``"job_accepted"``).
+        **data: Arbitrary key-value pairs merged into the log entry.
+    """
     entry = {"severity": level, "event": event, "ts": time.time(), **data}
     print(json.dumps(entry), flush=True, file=sys.stdout)
 

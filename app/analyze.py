@@ -1,3 +1,20 @@
+"""
+Core video analysis pipeline for the VideoAnalyzer service.
+
+Provides the ``process_job`` background task and supporting helpers that
+implement the full analysis lifecycle:
+  1. Validate the URL format.
+  2. Check video duration via yt-dlp metadata (no download).
+  3. Download the video to a temporary file via yt-dlp.
+  4. Upload the file to the Gemini File API.
+  5. Poll until the file reaches ACTIVE state.
+  6. Generate content using the configured Gemini model.
+  7. Clean up the temporary file unconditionally.
+
+All blocking I/O (yt-dlp, Gemini SDK) is offloaded to a thread pool via
+``asyncio.to_thread`` to avoid blocking the event loop.
+"""
+
 import asyncio
 import json
 import os
@@ -28,13 +45,32 @@ def _log(level: str, event: str, **data):
 
 
 class AppError(Exception):
+    """Structured application error carrying a machine-readable error code.
+
+    Used throughout the pipeline to signal known failure conditions that
+    should be surfaced to callers (e.g., DOWNLOAD_FAILED, GEMINI_TIMEOUT).
+    Unknown/unexpected exceptions are caught separately and mapped to
+    INTERNAL_ERROR.
+
+    Attributes:
+        code: Machine-readable error code (e.g., ``"DOWNLOAD_FAILED"``).
+    """
+
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
         self.code = code
 
 
 def validate_url(url: str) -> None:
-    """Validate URL format before processing."""
+    """Validate that the URL has a valid http/https scheme and non-empty host.
+
+    Args:
+        url: Raw URL string from the request body.
+
+    Raises:
+        AppError: With code ``INVALID_INPUT`` if the URL does not match the
+            expected pattern.
+    """
     if not _URL_PATTERN.match(url):
         raise AppError("INVALID_INPUT", "URL must start with http:// or https://.")
 
