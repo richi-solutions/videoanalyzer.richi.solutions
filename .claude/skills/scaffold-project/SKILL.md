@@ -1,6 +1,6 @@
 ---
 name: scaffold-project
-description: Scaffolds a new project with the full richi-solutions standard — Vite + React + TypeScript + Supabase + Tailwind + shadcn/ui + .claude subtree. Use /scaffold-project [name] to invoke.
+description: Scaffolds a new project with the full richi-solutions standard — Vite + React + TypeScript + Supabase + Tailwind + shadcn/ui + .claude config. Use /scaffold-project [name] to invoke.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Write, Edit
 argument-hint: "[project-name]"
@@ -98,15 +98,42 @@ VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 ```
 
-## Step 7: Git Init & .claude Subtree
+## Step 7: Git Init & .claude Setup
 
 ```bash
 git init
 git add -A
 git commit -m "feat: initial project scaffold"
+```
 
-# Add .claude subtree
-git subtree add --prefix=.claude https://github.com/richi-solutions/.claude.git main --squash
+Copy shared `.claude/` content from the orchestrator (source of truth):
+
+```bash
+OWNER="richi-solutions"
+SOURCE_REPO="orchestrator.richi.solutions"
+SHARED_DIRS="agents rules ref skills sync"
+
+mkdir -p .claude
+for dir in $SHARED_DIRS; do
+  gh api "repos/${OWNER}/${SOURCE_REPO}/contents/.claude/${dir}?ref=main" \
+    --jq '.[].download_url' | while read -r url; do
+    RELATIVE=$(echo "$url" | sed "s|.*/.claude/${dir}/||")
+    DEST_DIR=".claude/${dir}/$(dirname "$RELATIVE")"
+    mkdir -p "$DEST_DIR"
+    curl -sL "$url" -o ".claude/${dir}/${RELATIVE}"
+  done
+done
+
+# Copy settings.json
+gh api "repos/${OWNER}/${SOURCE_REPO}/contents/.claude/settings.json?ref=main" \
+  --jq '.download_url' | xargs curl -sL -o .claude/settings.json
+```
+
+Create a project-specific `CLAUDE.md` for this project. Use the orchestrator's CLAUDE.md as a template but adapt the Tech Stack, Folder Structure, and project-specific instructions.
+
+```bash
+git add .claude/
+git commit -m "chore: add .claude from orchestrator"
 ```
 
 ## Step 8: GitHub Repo
@@ -120,18 +147,16 @@ git push -u origin main
 
 If the repo doesn't exist yet, instruct the user to create it on GitHub first.
 
-## Step 9: Sync Security Config
+## Step 9: Sync Config
 
-If `.claude/security/` exists after subtree add:
+Copy all standardized configs from `.claude/sync/` to their target locations:
 
 ```bash
-cp .claude/security/.gitleaks.toml .gitleaks.toml 2>/dev/null
-cp .claude/security/.pre-commit-config.yaml .pre-commit-config.yaml 2>/dev/null
-mkdir -p .github .github/workflows
-cp .claude/security/dependabot.yml .github/dependabot.yml 2>/dev/null
-cp .claude/security/workflows/security.yml .github/workflows/security.yml 2>/dev/null
-git add .
-git commit -m "chore: sync security config from .claude/security"
+if [ -d ".claude/sync" ]; then
+  cp -r .claude/sync/. .
+  git add .
+  git commit -m "chore: sync config from .claude/sync"
+fi
 ```
 
 ## Step 10: Summary
@@ -156,12 +181,12 @@ src/
   routes/      — route config
 
 ### .claude
-- Subtree from richi-solutions/.claude
-- All agents, skills, rules, and security config included
+- Copied from orchestrator.richi.solutions (source of truth)
+- All agents, skills, rules, and synced config included
+- Updates distributed automatically via sync-dotclaude.yml
 
 ### Next Steps
 1. Fill in .env with Supabase credentials
 2. Run `supabase init` if using local Supabase
 3. Create your first feature with /new-feature
-4. Add the repo to update-all-dotclaude.sh
 ```
