@@ -24,6 +24,20 @@ def _hash_key(raw_key: str) -> str:
 
 
 def create_key(name: str, rate_limit: int) -> None:
+    """Create a new API key and persist its SHA-256 hash to Firestore.
+
+    Generates a ``va_``-prefixed cryptographically random key, stores its
+    hash in the ``api_keys`` collection, and prints the raw key to stdout
+    once. The raw key is not stored and cannot be retrieved again.
+
+    Args:
+        name: Human-readable identifier (e.g., ``"hookr-production"``).
+            Must be unique among active keys.
+        rate_limit: Maximum requests per minute allowed for this key.
+
+    Raises:
+        SystemExit: With code 1 if an active key with the same name already exists.
+    """
     db = _get_db()
 
     # Check for duplicate name
@@ -57,6 +71,7 @@ def create_key(name: str, rate_limit: int) -> None:
 
 
 def list_keys() -> None:
+    """Print a formatted table of all API keys (including revoked) to stdout."""
     db = _get_db()
     docs = db.collection("api_keys").stream()
 
@@ -76,6 +91,14 @@ def list_keys() -> None:
 
 
 def revoke_key(name: str) -> None:
+    """Set ``active=False`` on all Firestore records matching the given key name.
+
+    Args:
+        name: The name of the key to revoke.
+
+    Raises:
+        SystemExit: With code 1 if no active key with that name is found.
+    """
     db = _get_db()
     docs = (
         db.collection("api_keys")
